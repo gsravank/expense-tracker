@@ -65,7 +65,8 @@ def get_all_messages():
         user = User(row[1], row[3])
         message = Message(row[0], row[2], user)
 
-        all_messages.append(message)
+        if user.name_or_number is not None:
+            all_messages.append(message)
 
     connection.close()
 
