@@ -25,7 +25,7 @@ class User:
 # Class to represent a message
 class Message:
         def __init__(self, text, time, user):
-            self.text = text
+            self.text = text.encode('ascii', 'ignore') # Remove any non-ASCII characters
             self.time = time
             self.user = user
 
