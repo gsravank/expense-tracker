@@ -15,6 +15,12 @@ class User:
         def __repr__(self):
             return 'User: {}, ID: {}'.format(self.name_or_number, self.id)
 
+        def __str__(self):
+            return str(self.__dict__)
+
+        def __eq__(self, other):
+            return self.__dict__ == other.__dict__
+
 
 # Class to represent a message
 class Message:
