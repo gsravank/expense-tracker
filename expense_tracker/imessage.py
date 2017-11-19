@@ -1,4 +1,5 @@
 import sqlite3
+import datetime
 from os.path import expanduser
 
 
@@ -26,7 +27,7 @@ class User:
 class Message:
         def __init__(self, text, time, user):
             self.text = text.encode('ascii', 'ignore') # Remove any non-ASCII characters
-            self.time = time
+            self.time = datetime.datetime.fromtimestamp(time/1000000000 + OSX_EPOCH)
             self.user = user
 
         def __repr__(self):
