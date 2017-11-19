@@ -1,5 +1,6 @@
 import sqlite3
 import datetime
+from dateutil.relativedelta import relativedelta
 from os.path import expanduser
 
 
@@ -44,6 +45,7 @@ def _connection():
     return sqlite3.connect(db_path)
 
 
+# Return a list of all messages
 def get_all_messages():
     connection = _connection()
     c = connection.cursor()
@@ -68,3 +70,27 @@ def get_all_messages():
     connection.close()
 
     return all_messages
+
+
+# Return a list of messages received within the past "period" time
+def get_recent_messages(period='1w'):
+    # Get dates for today and the day which is "period" days back from today
+    today = datetime.datetime.now().date()
+
+    if period == '1w':
+        time_delta_first = datetime.timedelta(weeks=1)
+    elif period == '1m':
+        time_delta_first = relativedelta(months=1)
+    else:
+        time_delta_first = relativedelta(months=1)
+
+    first_day = today - time_delta_first
+
+    all_messages = get_all_messages()
+    recent_messages = list()
+
+    for message in all_messages:
+        if first_day <= message.time.date() < today:
+            recent_messages.append(message)
+
+    return recent_messages
