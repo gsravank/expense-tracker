@@ -27,7 +27,7 @@ class Message:
             return 'Message Content: {}, Received At: {}, From {}'.format(self.text, self.time, self.user)
 
 
-def _new_connection():
+def _connection():
     # The current logged-in user's Messages sqlite database is found at:
     #  ~/Library/Messages/chat.db
 
@@ -38,7 +38,7 @@ def _new_connection():
 
 
 def get_all_messages():
-    connection = _new_connection()
+    connection = _connection()
     c = connection.cursor()
 
     # Get all messages and join with recipient details
