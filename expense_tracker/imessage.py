@@ -30,7 +30,7 @@ class Message:
             self.user = user
 
         def __repr__(self):
-            return 'Message Content: {}, Received At: {}, From {}'.format(self.text, self.time, self.user)
+            return 'Message Content: "{}", Received At: {}, From: {}'.format(self.text, self.time, self.user.name_or_number)
 
 
 def _connection():
@@ -47,19 +47,23 @@ def get_all_messages():
     connection = _connection()
     c = connection.cursor()
 
-    # Get all messages and join with recipient details
+    # Get all messages and join with user details
     query = """
-    select message.text, message.handle_id, message.date, message.date_delivered, message.date_read, handle.id, handle.service 
+    select message.text, message.handle_id, message.date, handle.id
     from message 
     left join handle on message.handle_id = handle.ROWID
     """
 
     c.execute(query)
-    all_rows = list()
+
+    all_messages = list()
+
     for row in c:
-        all_rows.append(row)
-        # print row
+        user = User(row[1], row[3])
+        message = Message(row[0], row[2], user)
+
+        all_messages.append(message)
 
     connection.close()
 
-    return all_rows
+    return all_messages
