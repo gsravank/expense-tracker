@@ -6,6 +6,27 @@ from os.path import expanduser
 OSX_EPOCH = 978307200
 
 
+# Class to represent a user with whom messages can be exchanged
+class User:
+        def __init__(self, id, name_or_number):
+            self.id = id
+            self.name_or_number = name_or_number
+
+        def __repr__(self):
+            return 'User: {}, ID: {}'.format(self.name_or_number, self.id)
+
+
+# Class to represent a message
+class Message:
+        def __init__(self, text, time, user):
+            self.text = text
+            self.time = time
+            self.user = user
+
+        def __repr__(self):
+            return 'Message Content: {}, Received At: {}, From {}'.format(self.text, self.time, self.user)
+
+
 def _new_connection():
     # The current logged-in user's Messages sqlite database is found at:
     #  ~/Library/Messages/chat.db
@@ -28,12 +49,11 @@ def get_all_messages():
     """
 
     c.execute(query)
-
+    all_rows = list()
     for row in c:
-        print row
+        all_rows.append(row)
+        # print row
 
     connection.close()
 
-    return
-
-get_all_messages()
+    return all_rows
