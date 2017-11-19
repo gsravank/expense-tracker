@@ -15,10 +15,7 @@ class User:
             self.name_or_number = name_or_number
 
         def __repr__(self):
-            return 'User: {}, ID: {}'.format(self.name_or_number, self.id)
-
-        def __str__(self):
-            return str(self.__dict__)
+            return 'User: {}'.format(self.name_or_number)
 
         def __eq__(self, other):
             return self.__dict__ == other.__dict__
@@ -29,10 +26,13 @@ class Message:
         def __init__(self, text, time, user):
             self.text = text.encode('ascii', 'ignore') # Remove any non-ASCII characters
             self.time = datetime.datetime.fromtimestamp(time/1000000000 + OSX_EPOCH)
-            self.user = user
+            if isinstance(user, User):
+                self.user = user
+            else:
+                self.user = User(None, None)
 
         def __repr__(self):
-            return 'Message Content: "{}", Received At: {}, From: {}'.format(self.text, self.time, self.user.name_or_number)
+            return 'Message Content: "{}", Received At: {}, {}'.format(self.text, self.time, self.user)
 
 
 def _connection():
