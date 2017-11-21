@@ -1,5 +1,6 @@
 from imessage import get_recent_messages
 import json
+import re
 
 
 class Transaction:
@@ -23,7 +24,11 @@ class Transaction:
 
 
 def check_valid_transaction(message_content, expense_patterns):
-    return
+    for pattern, expense_details in expense_patterns.items():
+        if re.search(pattern, message_content):
+            return 1
+
+    return 0
 
 
 def get_recent_transactions(period='1w'):
