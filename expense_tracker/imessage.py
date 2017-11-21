@@ -34,6 +34,9 @@ class Message:
         def __repr__(self):
             return 'Message Content: "{}", Received At: {}, {}'.format(self.text, self.time, self.user)
 
+        def __eq__(self, other):
+            return self.__dict__ == other.__dict__
+
 
 def _connection():
     # The current logged-in user's Messages sqlite database is found at:

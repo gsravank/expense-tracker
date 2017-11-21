@@ -19,6 +19,10 @@
     "source": "Citi Credit",
     "flow": "out"
   },
+  ".* USD was spent on your .* on .* at .*?\\.":{
+    "source": "Citi Credit",
+    "flow": "out"
+  },
   "Rs\\.?.* has been refunded on .*":{
     "source": "Citi Debit",
     "flow": "in"
@@ -50,7 +54,7 @@
   "Rs\\.?.* refunded .*?\\.":{
     "source": "Paytm",
     "flow": "in"
-  }
+  },
   "Paid Rs\\.?.* to .*?\\.":{
     "source": "Paytm",
     "flow": "out"
