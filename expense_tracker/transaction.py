@@ -4,9 +4,11 @@ import re
 
 
 class Transaction:
-    def __init__(self, message):
+    def __init__(self, message, pattern):
         self.message = message
+        self.pattern = pattern
         self.amount = 0
+        self.source = ''
         self.vendor_name = ''
 
         # Extract vendor name and the amount for the transaction from message text
@@ -23,12 +25,12 @@ class Transaction:
         return 'Amount: {}, Via: {}, To: {}'.format(self.amount, self.source, self.vendor_name)
 
 
-def check_valid_transaction(message_content, expense_patterns):
+def find_matching_expense_pattern(message_content, expense_patterns):
     for pattern, expense_details in expense_patterns.items():
         if re.search(pattern, message_content):
-            return 1
+            return pattern
 
-    return 0
+    return ''
 
 
 def get_recent_transactions(period='1w'):
@@ -40,7 +42,8 @@ def get_recent_transactions(period='1w'):
     transactions = list()
 
     for message in recent_messages:
-        if check_valid_transaction(message.text, expense_patterns):
-            transactions.append(message)
+        matched_pattern = find_matching_expense_pattern(message.text, expense_patterns)
+        if matched_pattern != '':
+            transactions.append(Transaction(message, matched_pattern))
 
     return transactions
