@@ -10,6 +10,49 @@
   "has been used to make a purchase of Rs\\.?.* on .* at .*\\.":{
     "source": "Citi Debit",
     "flow": "out"
+  },
+  "is debited for Rs\\.?.* on":{
+    "source": "Citi Account",
+    "flow": "out"
+  },
+  "Rs\\.?.*was spent on your .* on .* at .*?\\.":{
+    "source": "Citi Credit",
+    "flow": "out"
+  },
+  "Rs\\.?.* has been refunded on .*":{
+    "source": "Citi Debit",
+    "flow": "in"
+  },
+  "has been credited with salary of Rs\\.?.*? on":{
+    "source": "Citi Account",
+    "flow": "in"
+  },
+  "You have received a credit in .* for amount of Rs\\.?.* from .* via":{
+    "source": "Citi Account",
+    "flow": "in"
+  },
+  "You paid .*? Rs\\..*?\\. ": {
+    "source": "Paytm",
+    "flow": "out"
+  },
+  "Added Rs\\.?.* to your Paytm wallet":{
+    "source": "Paytm",
+    "flow": "in"
+  },
+  "Paytm has added Rs\\.?.* cashback":{
+    "source": "Paytm",
+    "flow": "in"
+  },
+  "Rs\\.?.* has been paid to .*?\\.":{
+    "source": "Paytm",
+    "flow": "out"
+  },
+  "Rs\\.?.* refunded .*?\\.":{
+    "source": "Paytm",
+    "flow": "in"
   }
-
+  "Paid Rs\\.?.* to .*?\\.":{
+    "source": "Paytm",
+    "flow": "out"
+  }
 }
