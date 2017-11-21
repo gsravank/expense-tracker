@@ -1,0 +1,15 @@
+{
+  "Rs\\..* withdrawn via ATM":{
+    "source": "Citi Debit",
+    "flow": "out"
+  },
+  "has been used to make a purchase of Rs\\.?.* at .* on":{
+    "source": "Citi Debit",
+    "flow": "out"
+  },
+  "has been used to make a purchase of Rs\\.?.* on .* at .*\\.":{
+    "source": "Citi Debit",
+    "flow": "out"
+  }
+
+}
