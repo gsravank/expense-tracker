@@ -98,3 +98,24 @@ def get_recent_messages(period='1w'):
             recent_messages.append(message)
 
     return recent_messages
+
+
+def get_messages(start, end):
+    all_messages = get_all_messages()
+
+    messages_in_period = list()
+
+    try:
+        start_date = datetime.datetime.strptime(start, '%Y-%m-%d')
+        end_date = datetime.datetime.strptime(end, '%Y-%m-%d')
+    except Exception as e:
+        print 'Could not understand date inputs'
+        print 'Error: "{}"'.format( e.__str__() )
+
+        return []
+
+    for message in all_messages:
+        if start_date.date() <= message.time.date() < end_date.date():
+            messages_in_period.append(message)
+
+    return messages_in_period
