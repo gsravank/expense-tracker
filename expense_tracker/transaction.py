@@ -109,6 +109,13 @@ def message_is_a_transaction(message):
     if '$' not in first_sentence and 'rs.' not in first_sentence:
         return False
 
+    # If none of the action words occur in the text, then ignore the message
+    message_words = processed_text.strip().split()
+    action_words = incoming_action_words + outgoing_action_words
+
+    if not any([msg_word in action_words for msg_word in message_words]):
+        return False
+
     return True
 
 
