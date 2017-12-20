@@ -1,5 +1,5 @@
 from imessage import get_messages
-from constants import incoming_action_words, outgoing_action_words, transaction_sources
+from constants import incoming_action_words, outgoing_action_words, transaction_sources, usd_to_inr
 
 import spacy
 
@@ -103,7 +103,7 @@ def message_is_a_transaction(message):
     doc = nlp(unicode(processed_text))
     sentences = doc.sents
     for sentence in sentences:
-        first_sentence = sentence
+        first_sentence = sentence.text
         break
 
     if '$' not in first_sentence and 'rs.' not in first_sentence:
