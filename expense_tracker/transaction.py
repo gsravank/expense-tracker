@@ -1,6 +1,10 @@
 from imessage import get_messages
-import json
-import re
+from constants import incoming_action_words, outgoing_action_words, transaction_sources
+
+import spacy
+
+
+nlp = spacy.load('en')
 
 
 class Transaction:
@@ -28,7 +32,83 @@ class Transaction:
         return 'Amount: {}, Via: {}, To: {}'.format(self.amount, self.source, self.vendor_name)
 
 
+def check_if_price(string):
+    each_char_check = [char == '.' or char == ',' or char.isdigit() for char in string]
+    return all(each_char_check) and len(string)
+
+
+def process_text(text):
+    text_tokens = text.lower().strip().split()
+
+    final_tokens = list()
+
+    curr_idx = 0
+    while curr_idx < len(text_tokens):
+        token = text_tokens[curr_idx]
+        if token == 'rs' or token == 'rs.':
+            curr_idx += 1
+
+            if curr_idx < len(text_tokens):
+                next_token = text_tokens[curr_idx]
+
+                if check_if_price(next_token):
+                    final_tokens.append('rs.' + next_token)
+                else:
+                    final_tokens.append(token)
+                    final_tokens.append(next_token)
+            else:
+                final_tokens.append('rs.')
+        else:
+            if token == 'usd':
+                final_tokens.append('$')
+            else:
+                final_tokens.append(token)
+
+        curr_idx += 1
+
+    text_tokens = final_tokens
+    final_tokens = list()
+    curr_idx = 0
+    while curr_idx < len(text_tokens):
+        token = text_tokens[curr_idx]
+        if check_if_price(token):
+            curr_idx += 1
+
+            if curr_idx < len(text_tokens):
+                next_token = text_tokens[curr_idx]
+
+                if next_token == '$':
+                    final_tokens.append('$' + token)
+                else:
+                    final_tokens.append(token)
+                    final_tokens.append(next_token)
+        else:
+            final_tokens.append(token)
+
+        curr_idx += 1
+
+    return ' '.join(final_tokens).strip()
+
+
 def message_is_a_transaction(message):
+    message_text = message.text
+    user_name = message.user.name_or_number
+    processed_text = process_text(message_text)
+
+    # If source of message is not from list of known sources, then ignore message
+    if not any([tran_source in user_name for tran_source in transaction_sources]):
+        return False
+
+    # If first line from the processed text does not contain a Rs. or $ token, then ignore the message
+    doc = nlp(unicode(processed_text))
+    sentences = doc.sents
+    for sentence in sentences:
+        first_sentence = sentence
+        break
+
+    if '$' not in first_sentence and 'rs.' not in first_sentence:
+        return False
+
     return True
 
 
