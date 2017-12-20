@@ -100,6 +100,7 @@ def get_recent_messages(period='1w'):
     return recent_messages
 
 
+# Return a list of messages within a date range
 def get_messages(start, end):
     all_messages = get_all_messages()
 

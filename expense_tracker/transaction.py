@@ -1,12 +1,11 @@
-from imessage import get_recent_messages
+from imessage import get_messages
 import json
 import re
 
 
 class Transaction:
-    def __init__(self, message, pattern):
+    def __init__(self, message):
         self.message = message
-        self.pattern = pattern
         self.amount = 0
         self.source = ''
         self.vendor_name = ''
@@ -14,6 +13,7 @@ class Transaction:
         # Extract vendor name and the amount for the transaction from message text
         self.get_amount()
         self.get_vendor()
+        self.get_source()
 
     def get_amount(self):
         self.amount = 0
@@ -21,29 +21,24 @@ class Transaction:
     def get_vendor(self):
         self.vendor_name = ''
 
+    def get_source(self):
+        self.source = ''
+
     def __repr__(self):
         return 'Amount: {}, Via: {}, To: {}'.format(self.amount, self.source, self.vendor_name)
 
 
-def find_matching_expense_pattern(message_content, expense_patterns):
-    for pattern, expense_details in expense_patterns.items():
-        if re.search(pattern, message_content):
-            return pattern
-
-    return ''
+def message_is_a_transaction(message):
+    return True
 
 
-def get_recent_transactions(period='1w'):
-    recent_messages = get_recent_messages(period=period)
-
-    with open('data/expense_patterns.json', 'rb') as f:
-        expense_patterns = json.load(f)
+def get_transactions(start, end):
+    messages = get_messages(start, end)
 
     transactions = list()
 
-    for message in recent_messages:
-        matched_pattern = find_matching_expense_pattern(message.text, expense_patterns)
-        if matched_pattern != '':
-            transactions.append(Transaction(message, matched_pattern))
+    for message in messages:
+        if message_is_a_transaction(message):
+            transactions.append(Transaction(message))
 
     return transactions
