@@ -42,6 +42,7 @@ def process_text(text):
 
     final_tokens = list()
 
+    # Change all Rs amount related tokens to Rs.1234.56 format
     curr_idx = 0
     while curr_idx < len(text_tokens):
         token = text_tokens[curr_idx]
@@ -57,7 +58,7 @@ def process_text(text):
                     final_tokens.append(token)
                     final_tokens.append(next_token)
             else:
-                final_tokens.append('rs.')
+                final_tokens.append('rs')
         else:
             if token == 'usd':
                 final_tokens.append('$')
@@ -66,6 +67,7 @@ def process_text(text):
 
         curr_idx += 1
 
+    # Change all $ amount related tokens to $1234.56 format
     text_tokens = final_tokens
     final_tokens = list()
     curr_idx = 0
@@ -90,6 +92,21 @@ def process_text(text):
     return ' '.join(final_tokens).strip()
 
 
+def get_first_statement(text):
+    # If first line from the processed text does not contain a Rs. or $ token, then ignore the message
+    # doc = nlp(unicode(text))
+    # sentences = doc.sents
+    # for sentence in sentences:
+    #     first_sentence = sentence.text
+    #     break
+
+    # Simpler and works better (although not perfect)
+    statements = text.split('. ')
+    first_sentence = statements[0]
+
+    return first_sentence
+
+
 def message_is_a_transaction(message):
     message_text = message.text
     user_name = message.user.name_or_number
@@ -107,11 +124,7 @@ def message_is_a_transaction(message):
         return False
 
     # If first line from the processed text does not contain a Rs. or $ token, then ignore the message
-    doc = nlp(unicode(processed_text))
-    sentences = doc.sents
-    for sentence in sentences:
-        first_sentence = sentence.text
-        break
+    first_sentence = get_first_statement(processed_text)
 
     if '$' not in first_sentence and 'rs.' not in first_sentence:
         return False
