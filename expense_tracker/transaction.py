@@ -1,5 +1,5 @@
 from imessage import get_messages
-from constants import incoming_action_words, outgoing_action_words, transaction_sources, usd_to_inr
+from constants import incoming_action_words, outgoing_action_words, transaction_sources, usd_to_inr, CITI_ACCOUNT, CITI_CREDIT, CITI_DEBIT, PAYTM
 
 import spacy
 
@@ -10,26 +10,181 @@ nlp = spacy.load('en')
 class Transaction:
     def __init__(self, message):
         self.message = message
-        self.amount = 0
-        self.source = ''
-        self.vendor_name = ''
+        self.amount = None
+        self.source = None
+        self.vendor_name = None
+        self.flow = None
 
         # Extract vendor name and the amount for the transaction from message text
-        self.get_amount()
-        self.get_vendor()
-        self.get_source()
+        try:
+            self.get_details()
+        except Exception:
+            pass
 
-    def get_amount(self):
-        self.amount = 0
+    def get_details(self):
+        processed_text = process_text(self.message.text)
+        first_sent = get_first_statement(processed_text)
 
-    def get_vendor(self):
-        self.vendor_name = ''
+        sent_words = first_sent.strip().split()
+        action_word = get_first_matching_action_word(sent_words, incoming_action_words+outgoing_action_words)
 
-    def get_source(self):
-        self.source = ''
+        # Handle each case separately
+        if action_word == 'added':
+            # One case
+            if first_sent.startswith('paytm has added'):
+                self.amount = float(sent_words[3].strip('rs.').replace(',', ''))
+                self.source = PAYTM
+                self.vendor_name = 'paytm'
+                self.flow = 'in'
+        elif action_word == 'credited':
+            # Two cases
+            if first_sent.startswith('your a/c no.xxxxxx3819 is credited by'):
+                self.amount = float(sent_words[6].strip('rs.').replace(',', ''))
+                self.source = CITI_ACCOUNT
+                self.vendor_name = " ".join(sent_words[13:15])
+                self.flow = 'in'
+            elif first_sent.startswith('your citibank account xxxxxx3819 has been credited with salary'):
+                self.amount = float(sent_words[10].strip('rs.').replace(',', ''))
+                self.source = CITI_ACCOUNT
+                self.vendor_name = 'unbxd'
+                self.flow = 'in'
+        elif action_word == 'debited':
+            # One case
+            if first_sent.startswith('your a/c no.xxxxxx3819 is debited for'):
+                self.amount = float(sent_words[6].strip('rs.').replace(',', ''))
+                self.source = CITI_ACCOUNT
+                self.vendor_name = " ".join(sent_words[10:12])
+                self.flow = 'out'
+        elif action_word == 'paid':
+            # Three cases
+            if first_sent.startswith('pair rs.'):
+                self.amount = float(sent_words[1].strip('rs.').replace(',', ''))
+                self.source = PAYTM
+                self.flow = 'out'
+                # Vendor name could be multiple tokens
+                if len(sent_words) == 4:
+                    self.vendor_name = sent_words[3]
+                else:
+                    # Find index of token 'at'
+                    at_index = -1
+                    for idx, word in enumerate(sent_words):
+                        if word == 'at':
+                            at_index = idx
+                            break
+
+                    if at_index == -1:
+                        self.vendor_name = sent_words[3]
+                    else:
+                        self.vendor_name = " ".join(sent_words[3:at_index])
+            elif first_sent.startswith('rs.'):
+                self.amount = float(sent_words[0].strip('rs.').replace(',', ''))
+                self.source = PAYTM
+                self.flow = 'out'
+                self.vendor_name = " ".join(sent_words[5:])
+            elif first_sent.startswith('you paid'):
+                self.amount = float(sent_words[-1].strip('rs.').replace(',', ''))
+                self.source = PAYTM
+                self.flow = 'out'
+                self.vendor_name = " ".join(sent_words[2:-1])
+        elif action_word == 'purchase':
+            # One case
+            if first_sent.startswith('your debit card 5181xxxxxxxx4504 has been used'):
+                self.amount = float(sent_words[11].strip('rs.').replace(',', ''))
+                self.source = CITI_DEBIT
+                self.flow = 'out'
+
+                # Vendor name could be multiple tokens
+                # Message has 2 formats: 'at' comes before 'on' and vice-versa
+                at_index = -1
+                on_index = -1
+                for idx, word in enumerate(sent_words):
+                    if word == 'on':
+                        on_index = idx
+                    if word == 'at':
+                        at_index = idx
+
+                if at_index != -1 and on_index != -1:
+                    if on_index < at_index:
+                        self.vendor_name = " ".join(sent_words[at_index+1:])
+                    elif at_index < on_index:
+                        self.vendor_name = " ".join(sent_words[at_index+1:on_index])
+                    else:
+                        self.amount = None
+                        self.source = None
+                        self.flow = None
+                        self.vendor_name = None
+                else:
+                    self.amount = None
+                    self.source = None
+                    self.flow = None
+                    self.vendor_name = None
+        elif action_word == 'received':
+            # One case
+            if first_sent.startswith('you have received a credit'):
+                # Find the word 'via'
+                via_idx = -1
+                for idx, word in enumerate(sent_words):
+                    if word == 'via':
+                        via_idx = idx
+                        break
+
+                if via_idx != -1:
+                    self.vendor_name = " ".join(sent_words[17:via_idx])
+
+                    self.amount = float(sent_words[10].strip('rs.').replace(',', ''))
+                    self.source = CITI_ACCOUNT
+                    self.source = 'in'
+        elif action_word == 'refunded':
+            # Two cases
+            if 'for a transaction on your debit card' in first_sent:
+                self.amount = float(sent_words[0].strip('rs.').replace(',', ''))
+                self.source = CITI_ACCOUNT
+                self.flow = 'in'
+                self.vendor_name = 'unknown'
+            elif 'refunded in your paytm wallet' in first_sent:
+                self.amount = float(sent_words[0].strip('rs.').replace(',', ''))
+                self.source = PAYTM
+                self.flow = 'in'
+                self.vendor_name = " ".join(sent_words[-1])
+        elif action_word == 'spent':
+            # One case
+            if first_sent.startswith('$') or first_sent.startswith('rs.'):
+                if first_sent.startswith('$'):
+                    self.amount = float(sent_words[0].strip('$').replace(',', ''))
+                else:
+                    self.amount = float(sent_words[0].strip('rs.').replace(',', ''))
+                self.source = CITI_CREDIT
+                self.flow = 'out'
+
+                at_index = -1
+
+                for idx, word in enumerate(sent_words):
+                    if word == 'at':
+                        at_index = idx
+
+                if at_index != -1:
+                    self.vendor_name = " ".join(sent_words[at_index+1:])
+                else:
+                    self.amount = None
+                    self.source = None
+                    self.vendor_name = None
+                    self.flow = None
+        elif action_word == 'withdrawn':
+            # One case
+            if first_sent.startswith('rs.'):
+                self.amount = float(sent_words[0].strip('rs.').replace(',', ''))
+                self.source = CITI_ACCOUNT
+                self.vendor_name = "cash"
+                self.flow = 'out'
+
+        if self.vendor_name:
+            self.vendor_name = self.vendor_name.title()
 
     def __repr__(self):
-        return 'Amount: {}, Via: {}, To: {}'.format(self.amount, self.source, self.vendor_name)
+        if self.flow == 'in':
+            return 'Amount: {}, Via: {}, From: {}'.format(self.amount, self.source, self.vendor_name)
+        else:
+            return 'Amount: {}, Via: {}, To: {}'.format(self.amount, self.source, self.vendor_name)
 
 
 def check_if_price(string):
@@ -89,7 +244,30 @@ def process_text(text):
 
         curr_idx += 1
 
-    return ' '.join(final_tokens).strip()
+    processed_text = " ".join(final_tokens).strip()
+
+    # If after a period there is an alphabet character, then add space after the period
+    final_chars = list()
+    temp_chars = list()
+    for char in processed_text:
+        if char == ".":
+            temp_chars.append(".")
+        else:
+            if len(temp_chars) == 0:
+                final_chars.append(char)
+            else:
+                if char.isalpha() and char != 'x':
+                    temp_chars.append(" ")
+                    temp_chars.append(char)
+                else:
+                    temp_chars.append(char)
+
+                final_chars.extend(temp_chars)
+                temp_chars = list()
+
+    final_processed_text = "".join(final_chars)
+
+    return final_processed_text
 
 
 def get_first_statement(text):
@@ -105,6 +283,15 @@ def get_first_statement(text):
     first_sentence = statements[0]
 
     return first_sentence
+
+
+def get_first_matching_action_word(message_words, action_words):
+    for token in message_words:
+        for action_word in action_words:
+            if token == action_word:
+                return action_word
+
+    return 'None'
 
 
 def message_is_a_transaction(message):

@@ -11,4 +11,12 @@ usd_to_inr = c.get_rate('USD', 'INR')
 incoming_action_words = ['refunded', 'credited', 'added', 'received']
 outgoing_action_words = ['withdrawn', 'purchase', 'debited', 'spent', 'paid']
 
+
+# Names of transaction sources in messages
 transaction_sources = ['citi', 'paytm']
+
+# Actual sources
+CITI_ACCOUNT = 'Citibank Account'
+CITI_DEBIT = 'Citibank Debit Card'
+CITI_CREDIT = 'Citibank Credit Card'
+PAYTM = 'PayTM Wallet'
