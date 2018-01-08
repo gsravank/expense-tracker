@@ -116,7 +116,7 @@ def get_messages(start, end):
         return []
 
     for message in all_messages:
-        if start_date.date() <= message.time.date() < end_date.date():
+        if start_date.date() <= message.time.date() <= end_date.date():
             messages_in_period.append(message)
 
     return messages_in_period

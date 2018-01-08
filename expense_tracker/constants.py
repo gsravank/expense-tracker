@@ -9,7 +9,7 @@ usd_to_inr = c.get_rate('USD', 'INR')
 # Action words to identify a message as a transaction
 
 incoming_action_words = ['refunded', 'credited', 'added', 'received']
-outgoing_action_words = ['withdrawn', 'purchase', 'debited', 'spent', 'paid']
+outgoing_action_words = ['withdrawn', 'purchase', 'debited', 'spent', 'paid', 'request']
 
 
 # Names of transaction sources in messages

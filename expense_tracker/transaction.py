@@ -57,7 +57,7 @@ class Transaction:
                 self.flow = 'out'
         elif action_word == 'paid':
             # Three cases
-            if first_sent.startswith('pair rs.'):
+            if first_sent.startswith('paid rs.'):
                 self.amount = float(sent_words[1].strip('rs.').replace(',', ''))
                 self.source = PAYTM
                 self.flow = 'out'
@@ -89,7 +89,7 @@ class Transaction:
         elif action_word == 'purchase':
             # One case
             if first_sent.startswith('your debit card 5181xxxxxxxx4504 has been used'):
-                self.amount = float(sent_words[11].strip('rs.').replace(',', ''))
+                self.amount = float(sent_words[12].strip('rs.').replace(',', ''))
                 self.source = CITI_DEBIT
                 self.flow = 'out'
 
@@ -176,6 +176,28 @@ class Transaction:
                 self.source = CITI_ACCOUNT
                 self.vendor_name = "cash"
                 self.flow = 'out'
+        elif action_word == 'request':
+            if first_sent.startswith('your request on'):
+                self.amount = float(sent_words[6].strip('rs.').replace(",", ""))
+                self.source = CITI_ACCOUNT
+                self.flow = 'out'
+
+                to_index = -1
+                was_index = -1
+
+                for idx, word in enumerate(sent_words):
+                    if word == 'to':
+                        to_index = idx
+                    if word == 'was':
+                        was_index = idx
+
+                if to_index != -1 and was_index != -1 and to_index < was_index:
+                    self.vendor_name = " ".join(sent_words[to_index+1: was_index])
+                else:
+                    self.amount = None
+                    self.source = None
+                    self.vendor_name = None
+                    self.flow = None
 
         if self.vendor_name:
             self.vendor_name = self.vendor_name.title()
@@ -247,16 +269,23 @@ def process_text(text):
     processed_text = " ".join(final_tokens).strip()
 
     # If after a period there is an alphabet character, then add space after the period
+    # Except when it ends with .com or when it starts with www.
+    prev_three_chars_to_avoid = ['www']
+    next_three_chars_to_avoid = ['com', 'org', 'in ']
+
     final_chars = list()
     temp_chars = list()
-    for char in processed_text:
+    for idx, char in enumerate(processed_text):
         if char == ".":
             temp_chars.append(".")
         else:
             if len(temp_chars) == 0:
                 final_chars.append(char)
             else:
-                if char.isalpha() and char != 'x':
+                three_chars_after_period = "".join(processed_text[idx:idx+3])
+                three_chars_before_period = "".join(processed_text[idx-4:idx-1])
+
+                if char.isalpha() and char != 'x' and not(any([three_chars_before_period == triple for triple in prev_three_chars_to_avoid])) and not(any([three_chars_after_period == triple for triple in next_three_chars_to_avoid])):
                     temp_chars.append(" ")
                     temp_chars.append(char)
                 else:
