@@ -355,6 +355,9 @@ def get_transactions(start, end):
 
     for message in messages:
         if message_is_a_transaction(message):
-            transactions.append(Transaction(message))
+            transaction = Transaction(message)
+
+            if not any([x is None for x in [transaction.amount, transaction.source, transaction.vendor_name, transaction.flow]]):
+                transactions.append(transaction)
 
     return transactions
