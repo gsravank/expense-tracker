@@ -1,6 +1,6 @@
 Income
-Interest Money
-Salary
-Gifts
-Selling
-Miscellaneous
+Interest Money,
+Salary,
+Gifts,
+Selling,
+Miscellaneous,

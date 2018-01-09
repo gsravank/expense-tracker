@@ -1,5 +1,5 @@
 Debt/Loan
-Loan
-Debt
-Debt Collection
-Repayment
+Loan,
+Debt,
+Debt Collection,
+Repayment,
