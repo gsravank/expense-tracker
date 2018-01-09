@@ -1,4 +1,4 @@
-from imessage import get_messages
+from imessage import get_messages, get_all_messages
 from constants import incoming_action_words, outgoing_action_words, transaction_sources, usd_to_inr, CITI_ACCOUNT, CITI_CREDIT, CITI_DEBIT, PAYTM
 
 import spacy
@@ -346,6 +346,21 @@ def message_is_a_transaction(message):
         return False
 
     return True
+
+
+def get_all_transactions():
+    messages = get_all_messages()
+
+    transactions = list()
+
+    for message in messages:
+        if message_is_a_transaction(message):
+            transaction = Transaction(message)
+
+            if not any([x is None for x in [transaction.amount, transaction.source, transaction.vendor_name, transaction.flow]]):
+                transactions.append(transaction)
+
+    return transactions
 
 
 def get_transactions(start, end):
