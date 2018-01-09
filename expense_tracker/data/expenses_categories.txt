@@ -1,0 +1,17 @@
+Expenses
+Food & Beverage, Restaurants, Groceries
+Bills & Utilities, Phone, Water, Electricity, Gas, Television, Internet, Rent
+Transportation, Taxi, Parking, Petrol, Maintenance
+Shopping, Clothing, Footwear, Accessories, Electronics
+Friends & Lover, Harsha, Naveen, Parents, Teja
+Entertainment, Movies & Games
+Travel, Flights, Buses, Trains
+Health & Fitness, Sports, Doctor, Pharmacy, Personal Care
+Gifts & Donations, Marriage, Funeral, Charity
+Family, Children, Home Services, Pets
+Education, Books, Courses
+Investment,
+Business,
+Insurances,
+Withdrawal,
+Miscellaneous,
