@@ -1,8 +1,8 @@
 Expenses
 Food & Beverage, Restaurants, Groceries
-Bills & Utilities, Phone, Water, Electricity, Gas, Television, Internet, Rent
+Bills & Utilities, Phone, Water, Electricity, Gas, Television, Internet, Rent, Online Services
 Transportation, Taxi, Parking, Petrol, Maintenance
-Shopping, Clothing, Footwear, Accessories, Electronics
+Shopping, Clothing, Footwear, Accessories, Electronics, Apps, Other
 Friends & Lover, Harsha, Naveen, Parents, Teja
 Entertainment, Movies & Games
 Travel, Flights, Buses, Trains

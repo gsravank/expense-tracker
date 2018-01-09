@@ -145,7 +145,7 @@ class Transaction:
                 self.amount = float(sent_words[0].strip('rs.').replace(',', ''))
                 self.source = PAYTM
                 self.flow = 'in'
-                self.vendor_name = " ".join(sent_words[-1])
+                self.vendor_name = " ".join(sent_words[-1:])
         elif action_word == 'spent':
             # One case
             if first_sent.startswith('$') or first_sent.startswith('rs.'):

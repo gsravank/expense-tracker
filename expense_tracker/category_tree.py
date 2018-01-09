@@ -36,6 +36,8 @@ expenses_category_tree = get_category_tree_from_file(expenses_categories_file)
 income_category_tree = get_category_tree_from_file(income_categories_file)
 debt_loan_category_tree = get_category_tree_from_file(debt_loan_categories_file)
 
+category_tree_dictionary = {'expenses': expenses_category_tree, 'income': income_category_tree, 'debt/loan': debt_loan_category_tree}
+
 # print_tree(expenses_category_tree)
 # print_tree(income_category_tree)
 # print_tree(debt_loan_category_tree)
