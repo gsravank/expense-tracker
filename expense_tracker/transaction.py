@@ -1,7 +1,9 @@
 from imessage import get_messages, get_all_messages
 from constants import incoming_action_words, outgoing_action_words, transaction_sources, usd_to_inr, CITI_ACCOUNT, CITI_CREDIT, CITI_DEBIT, PAYTM
+from category_tree import category_tree_dictionary, get_node_from_node_name, get_path_string_from_root_to_node
 
 import spacy
+import pandas as pd
 
 
 nlp = spacy.load('en')
@@ -14,10 +16,17 @@ class Transaction:
         self.source = None
         self.vendor_name = None
         self.flow = None
+        self.category_path = None
 
-        # Extract vendor name and the amount for the transaction from message text
+        # Extract vendor name, flow and the amount for the transaction from message text
         try:
             self.get_details()
+        except Exception:
+            pass
+
+        # Extract category name
+        try:
+            self.get_category_path()
         except Exception:
             pass
 
@@ -150,7 +159,7 @@ class Transaction:
             # One case
             if first_sent.startswith('$') or first_sent.startswith('rs.'):
                 if first_sent.startswith('$'):
-                    self.amount = float(sent_words[0].strip('$').replace(',', ''))
+                    self.amount = float(sent_words[0].strip('$').replace(',', '')) * usd_to_inr
                 else:
                     self.amount = float(sent_words[0].strip('rs.').replace(',', ''))
                 self.source = CITI_CREDIT
@@ -200,13 +209,35 @@ class Transaction:
                     self.flow = None
 
         if self.vendor_name:
-            self.vendor_name = self.vendor_name.title()
+            self.vendor_name = self.vendor_name.title().strip('+')
+
+    def get_category_path(self):
+        if not any([elem is None for elem in [self.amount, self.source, self.vendor_name, self.flow]]):
+            vendor_category_df = pd.read_csv('data/super_categories.csv')
+            rel_df = vendor_category_df[(vendor_category_df['source'] == self.source) & (vendor_category_df['flow'] == self.flow) & (vendor_category_df['vendor'] == self.vendor_name)]
+
+            if len(rel_df):
+                rel_df = rel_df.iloc[0]
+
+                tree_name = rel_df['tree_name'].strip()
+                leaf_name = rel_df['leaf_name'].strip()
+
+                # Special cases handling
+                if self.vendor_name == 'Itunes.Com/Bill It' and self.amount < 100.0:
+                    leaf_name = 'Online Services'
+            else:
+                tree_name = 'unknown'
+                leaf_name = 'Unknown'
+
+            category_node = get_node_from_node_name(leaf_name, category_tree_dictionary[tree_name])
+
+            self.category_path = get_path_string_from_root_to_node(category_node, sep='|')
 
     def __repr__(self):
         if self.flow == 'in':
-            return 'Amount: {}, Via: {}, From: {}'.format(self.amount, self.source, self.vendor_name)
+            return 'Amount: {}, Via: {}, From: {}, Category: {}'.format(self.amount, self.source, self.vendor_name, self.category_path)
         else:
-            return 'Amount: {}, Via: {}, To: {}'.format(self.amount, self.source, self.vendor_name)
+            return 'Amount: {}, Via: {}, To: {}, Category: {}'.format(self.amount, self.source, self.vendor_name, self.category_path)
 
 
 def check_if_price(string):
@@ -348,6 +379,77 @@ def message_is_a_transaction(message):
     return True
 
 
+def resolve_categories_from_file():
+    unknown_categories_file = 'data/unknown_categories.csv'
+    super_categories_file = 'data/super_categories.csv'
+
+    unknown_categories = pd.read_csv(unknown_categories_file)
+    try:
+        unknown_categories.drop('Unnamed: 0', axis=1, inplace=True)
+    except Exception:
+        pass
+
+    super_categories = pd.read_csv(super_categories_file)
+    try:
+        super_categories.drop('Unnamed: 0', axis=1, inplace=True)
+    except Exception:
+        pass
+
+    if len(unknown_categories):
+        resolved_categories = unknown_categories[(unknown_categories['tree_name'] != 'unknown') & (unknown_categories['leaf_name'] != 'Unknown')]
+        still_unknown_categories = unknown_categories[(unknown_categories['tree_name'] == 'unknown') | (unknown_categories['leaf_name'] == 'Unknown')]
+
+        if len(resolved_categories):
+            all_known_categories = [super_categories, resolved_categories]
+            all_known_categories_df = pd.concat(all_known_categories)
+
+            all_known_categories_df.to_csv(super_categories_file)
+            print 'Appended resolved category maps to super_categories.csv'
+
+            if len(still_unknown_categories):
+                still_unknown_categories.to_csv(unknown_categories_file)
+                print 'Written still unresolved category maps to unknown_categories.csv'
+        else:
+            print 'Unknown categories present in file but none resolved'
+
+
+def get_unknown_categories():
+    all_transactions = get_all_transactions()
+
+    unknown_cat_transactions = [tran for tran in all_transactions if tran.category_path == 'Unknown']
+
+    if len(unknown_cat_transactions):
+        flows = list()
+        sources = list()
+        vendors = list()
+        tree_names = list()
+        leaf_names = list()
+
+        combinations = list()
+
+        for unknown_tran in unknown_cat_transactions:
+            combinations.append((unknown_tran.flow, unknown_tran.source, unknown_tran.vendor_name))
+
+        unique_combinations = list(set(combinations))
+
+        for combination in unique_combinations:
+            flows.append(combination[0])
+            sources.append(combination[1])
+            vendors.append(combination[2])
+            tree_names.append('unknown')
+            leaf_names.append('Unknown')
+
+        unknown_categories_df = pd.DataFrame({'flow': flows, 'source': sources, 'vendor': vendors, 'tree_name': tree_names, 'leaf_name': leaf_names})
+        unknown_categories_df = unknown_categories_df[['flow', 'source', 'vendor', 'tree_name', 'leaf_name']]
+        unknown_categories_df.to_csv('data/unknown_categories.csv')
+
+        print 'Written unknown vendor to category maps to unknown_categories.csv'
+    else:
+        empty_df = pd.DataFrame({'flow': [], 'source': [], 'vendor': [], 'tree_name': [], 'leaf_name': []})
+        empty_df.to_csv('data/unknown_categories.csv')
+        print 'No unknown categories among the transactions'
+
+
 def get_all_transactions():
     messages = get_all_messages()
 
@@ -376,3 +478,8 @@ def get_transactions(start, end):
                 transactions.append(transaction)
 
     return transactions
+
+
+# Resolve any unknown vendor category maps
+resolve_categories_from_file()
+get_unknown_categories()

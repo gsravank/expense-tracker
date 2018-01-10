@@ -4,11 +4,11 @@ Bills & Utilities, Phone, Water, Electricity, Gas, Television, Internet, Rent, O
 Transportation, Taxi, Parking, Petrol, Maintenance
 Shopping, Clothing, Footwear, Accessories, Electronics, Apps, Other
 Friends & Lover, Harsha, Naveen, Parents, Teja
-Entertainment, Movies & Games
-Travel, Flights, Buses, Trains
+Entertainment, Movies, Games
+Travel, Flights, Buses, Trains, Stay, Forex
 Health & Fitness, Sports, Doctor, Pharmacy, Personal Care
 Gifts & Donations, Marriage, Funeral, Charity
-Family, Children, Home Services, Pets
+Family, Wedding, Children, Home Services, Pets
 Education, Books, Courses
 Investment,
 Business,
