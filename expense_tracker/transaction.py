@@ -4,6 +4,7 @@ from category_tree import category_tree_dictionary, get_node_from_node_name, get
 
 import spacy
 import pandas as pd
+import datetime
 
 
 nlp = spacy.load('en')
@@ -437,7 +438,7 @@ def resolve_categories_from_file():
 def get_unknown_categories():
     all_transactions = get_all_transactions()
 
-    unknown_cat_transactions = [tran for tran in all_transactions if tran.category_path == 'Unknown' or tran.vendor == 'Unknown']
+    unknown_cat_transactions = [tran for tran in all_transactions if tran.category_path == 'Unknown' and tran.vendor == 'Unknown']
 
     if len(unknown_cat_transactions):
         flows = list()
@@ -484,24 +485,35 @@ def get_all_transactions():
             transaction = Transaction(message)
 
             if not any([x is None for x in [transaction.amount, transaction.source, transaction.vendor_name, transaction.flow]]):
-                transactions.append(transaction)
+                if transaction.source == CITI_DEBIT and transaction.vendor == 'PayTM': # Ignore transaction from Citi to PayTM wallet
+                    pass
+                else:
+                    transactions.append(transaction)
 
     return transactions
 
 
 def get_transactions(start, end):
-    messages = get_messages(start, end)
+    try:
+        start_date = datetime.datetime.strptime(start, '%Y-%m-%d')
+        end_date = datetime.datetime.strptime(end, '%Y-%m-%d')
+    except Exception as e:
+        print 'Could not understand date inputs'
+        print 'Error: "{}"'.format( e.__str__() )
 
-    transactions = list()
+        return []
 
-    for message in messages:
-        if message_is_a_transaction(message):
-            transaction = Transaction(message)
+    all_transactions = get_all_transactions()
 
-            if not any([x is None for x in [transaction.amount, transaction.source, transaction.vendor_name, transaction.flow]]):
-                transactions.append(transaction)
+    relevant_transactions = list()
 
-    return transactions
+    for transaction in all_transactions:
+        transaction_msg = transaction.message
+
+        if start_date.date() <= transaction_msg.time.date() <= end_date.date():
+            relevant_transactions.append(transaction)
+
+    return relevant_transactions
 
 
 # Resolve any unknown vendor category maps
