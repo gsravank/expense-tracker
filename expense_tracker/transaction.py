@@ -462,7 +462,7 @@ def get_unknown_categories():
             leaf_names.append('Unknown')
             vendors.append('Unknown')
 
-        unknown_categories_df = pd.DataFrame({'flow': flows, 'source': sources, 'vendor_name': vendor_names, 'tree_name': tree_names, 'leaf_name': leaf_names, 'reabable_name': vendors})
+        unknown_categories_df = pd.DataFrame({'flow': flows, 'source': sources, 'vendor_name': vendor_names, 'tree_name': tree_names, 'leaf_name': leaf_names, 'readable_name': vendors})
         unknown_categories_df = unknown_categories_df[['flow', 'source', 'vendor_name', 'tree_name', 'leaf_name', 'readable_name']]
         unknown_categories_df.to_csv('data/unknown_categories.csv')
 
