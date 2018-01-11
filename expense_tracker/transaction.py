@@ -17,6 +17,7 @@ class Transaction:
         self.vendor_name = None
         self.flow = None
         self.category_path = None
+        self.vendor = None
 
         # Extract vendor name, flow and the amount for the transaction from message text
         try:
@@ -27,6 +28,12 @@ class Transaction:
         # Extract category name
         try:
             self.get_category_path()
+        except Exception:
+            pass
+
+        # Get readable name for vendor
+        try:
+            self.get_readable_name()
         except Exception:
             pass
 
@@ -214,7 +221,7 @@ class Transaction:
     def get_category_path(self):
         if not any([elem is None for elem in [self.amount, self.source, self.vendor_name, self.flow]]):
             vendor_category_df = pd.read_csv('data/super_categories.csv')
-            rel_df = vendor_category_df[(vendor_category_df['source'] == self.source) & (vendor_category_df['flow'] == self.flow) & (vendor_category_df['vendor'] == self.vendor_name)]
+            rel_df = vendor_category_df[(vendor_category_df['source'] == self.source) & (vendor_category_df['flow'] == self.flow) & (vendor_category_df['vendor_name'] == self.vendor_name)]
 
             if len(rel_df):
                 rel_df = rel_df.iloc[0]
@@ -233,11 +240,25 @@ class Transaction:
 
             self.category_path = get_path_string_from_root_to_node(category_node, sep='|')
 
+    def get_readable_name(self):
+        if not any([elem is None for elem in [self.amount, self.source, self.vendor_name, self.flow]]):
+            vendor_category_df = pd.read_csv('data/super_categories.csv')
+            rel_df = vendor_category_df[(vendor_category_df['source'] == self.source) & (vendor_category_df['flow'] == self.flow) & (vendor_category_df['vendor_name'] == self.vendor_name)]
+
+            if len(rel_df):
+                rel_df = rel_df.iloc[0]
+
+                readable_name = rel_df['readable_name']
+            else:
+                readable_name = 'unknown'
+
+            self.vendor = readable_name
+
     def __repr__(self):
         if self.flow == 'in':
-            return 'Amount: {}, Via: {}, From: {}, Category: {}'.format(self.amount, self.source, self.vendor_name, self.category_path)
+            return 'Amount: {}, Via: {}, From: {}, Category: {}'.format(self.amount, self.source, self.vendor, self.category_path)
         else:
-            return 'Amount: {}, Via: {}, To: {}, Category: {}'.format(self.amount, self.source, self.vendor_name, self.category_path)
+            return 'Amount: {}, Via: {}, To: {}, Category: {}'.format(self.amount, self.source, self.vendor, self.category_path)
 
 
 def check_if_price(string):
@@ -396,8 +417,8 @@ def resolve_categories_from_file():
         pass
 
     if len(unknown_categories):
-        resolved_categories = unknown_categories[(unknown_categories['tree_name'] != 'unknown') & (unknown_categories['leaf_name'] != 'Unknown')]
-        still_unknown_categories = unknown_categories[(unknown_categories['tree_name'] == 'unknown') | (unknown_categories['leaf_name'] == 'Unknown')]
+        resolved_categories = unknown_categories[(unknown_categories['tree_name'] != 'unknown') & (unknown_categories['leaf_name'] != 'Unknown') & (unknown_categories['readable_name'] != 'Unknown')]
+        still_unknown_categories = unknown_categories[(unknown_categories['tree_name'] == 'unknown') | (unknown_categories['leaf_name'] == 'Unknown') | (unknown_categories['readable_name'] == 'Unknown')]
 
         if len(resolved_categories):
             all_known_categories = [super_categories, resolved_categories]
@@ -416,14 +437,15 @@ def resolve_categories_from_file():
 def get_unknown_categories():
     all_transactions = get_all_transactions()
 
-    unknown_cat_transactions = [tran for tran in all_transactions if tran.category_path == 'Unknown']
+    unknown_cat_transactions = [tran for tran in all_transactions if tran.category_path == 'Unknown' or tran.vendor == 'Unknown']
 
     if len(unknown_cat_transactions):
         flows = list()
         sources = list()
-        vendors = list()
+        vendor_names = list()
         tree_names = list()
         leaf_names = list()
+        vendors = list()
 
         combinations = list()
 
@@ -435,17 +457,19 @@ def get_unknown_categories():
         for combination in unique_combinations:
             flows.append(combination[0])
             sources.append(combination[1])
-            vendors.append(combination[2])
+            vendor_names.append(combination[2])
             tree_names.append('unknown')
             leaf_names.append('Unknown')
+            vendors.append('Unknown')
 
-        unknown_categories_df = pd.DataFrame({'flow': flows, 'source': sources, 'vendor': vendors, 'tree_name': tree_names, 'leaf_name': leaf_names})
-        unknown_categories_df = unknown_categories_df[['flow', 'source', 'vendor', 'tree_name', 'leaf_name']]
+        unknown_categories_df = pd.DataFrame({'flow': flows, 'source': sources, 'vendor_name': vendor_names, 'tree_name': tree_names, 'leaf_name': leaf_names, 'reabable_name': vendors})
+        unknown_categories_df = unknown_categories_df[['flow', 'source', 'vendor_name', 'tree_name', 'leaf_name', 'readable_name']]
         unknown_categories_df.to_csv('data/unknown_categories.csv')
 
         print 'Written unknown vendor to category maps to unknown_categories.csv'
     else:
-        empty_df = pd.DataFrame({'flow': [], 'source': [], 'vendor': [], 'tree_name': [], 'leaf_name': []})
+        empty_df = pd.DataFrame({'flow': [], 'source': [], 'vendor_name': [], 'tree_name': [], 'leaf_name': [], 'readable_name': []})
+        empty_df = empty_df[['flow', 'source', 'vendor_name', 'tree_name', 'leaf_name', 'readable_name']]
         empty_df.to_csv('data/unknown_categories.csv')
         print 'No unknown categories among the transactions'
 
