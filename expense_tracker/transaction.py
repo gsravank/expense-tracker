@@ -17,6 +17,7 @@ class Transaction:
         self.source = None
         self.vendor_name = None
         self.flow = None
+        self.category_node = None
         self.category_path = None
         self.vendor = None
 
@@ -237,9 +238,9 @@ class Transaction:
                 tree_name = 'unknown'
                 leaf_name = 'Unknown'
 
-            category_node = get_node_from_node_name(leaf_name, category_tree_dictionary[tree_name])
+            self.category_node = get_node_from_node_name(leaf_name, category_tree_dictionary[tree_name])
 
-            self.category_path = get_path_string_from_root_to_node(category_node, sep='|')
+            self.category_path = get_path_string_from_root_to_node(self.category_node, sep='|')
 
     def get_readable_name(self):
         if not any([elem is None for elem in [self.amount, self.source, self.vendor_name, self.flow]]):
