@@ -36,7 +36,7 @@ def get_node_from_node_name(node_name, root_node):
         return None
 
 
-def get_path_string_from_root_to_node(node_name, sep='>'):
+def get_path_string_from_root_to_node(node_name, sep='|'):
     node_names = list()
 
     for node in node_name.path:
