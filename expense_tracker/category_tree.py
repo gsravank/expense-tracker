@@ -1,4 +1,4 @@
-from anytree import Node, RenderTree, search
+from anytree import Node, RenderTree, search, PreOrderIter
 
 
 def get_category_tree_from_file(file_name):
@@ -43,6 +43,16 @@ def get_path_string_from_root_to_node(node_name, sep='|'):
         node_names.append(node.name)
 
     return sep.join(node_names)
+
+
+def get_all_leaf_nodes_below_any_node(node_name):
+    leaf_nodes = list()
+
+    for node in PreOrderIter(node_name):
+        if len(node.children) == 0:
+            leaf_nodes.append(node)
+
+    return leaf_nodes
 
 
 expenses_categories_file = '/Users/sravan/Desktop/projects/expense-tracker/expense_tracker/data/expenses_categories.txt'
