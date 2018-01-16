@@ -159,10 +159,30 @@ def get_transactions_of_leaf_node(start_date, end_date, leaf_node):
     return node_transactions
 
 
+def get_transactions_of_leaf_node_from_transactions(transactions, leaf_node):
+    node_transactions = list()
+
+    for transaction in transactions:
+        if transaction.category_node == leaf_node:
+            node_transactions.append(transaction)
+
+    return node_transactions
+
+
 def get_transactions_of_leaf_nodes_below_any_node(start_date, end_date, any_node):
     all_leaf_nodes_of_node = get_all_leaf_nodes_below_any_node(any_node)
 
     each_leaf_node_transactions = [get_transactions_of_leaf_node(start_date, end_date, leaf_node) for leaf_node in all_leaf_nodes_of_node]
+
+    all_leaf_node_transactions = flatten_list_of_lists(each_leaf_node_transactions)
+
+    return all_leaf_node_transactions
+
+
+def get_transactions_of_leaf_nodes_below_any_node_from_transactions(transactions, any_node):
+    all_leaf_nodes_of_node = get_all_leaf_nodes_below_any_node(any_node)
+
+    each_leaf_node_transactions = [[transaction for transaction in transactions if transaction.category_node == leaf_node]for leaf_node in all_leaf_nodes_of_node]
 
     all_leaf_node_transactions = flatten_list_of_lists(each_leaf_node_transactions)
 
@@ -180,3 +200,7 @@ def node_total_expense_or_income(start_date, end_date, node):
     return total_expense_or_income
 
 
+def node_total_expense_or_income_from_transactions(transactions, node):
+    all_leaf_node_transactions = get_transactions_of_leaf_node_from_transactions(transactions, node)
+
+    return total_amount_in_transactions(all_leaf_node_transactions)
