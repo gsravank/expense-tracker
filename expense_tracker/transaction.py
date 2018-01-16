@@ -20,6 +20,7 @@ class Transaction:
         self.category_node = None
         self.category_path = None
         self.vendor = None
+        self.time = self.message.time
 
         # Extract vendor name, flow and the amount for the transaction from message text
         try:
@@ -258,9 +259,9 @@ class Transaction:
 
     def __repr__(self):
         if self.flow == 'in':
-            return 'Amount: {}, Via: {}, From: {}, Category: {}'.format(self.amount, self.source, self.vendor, self.category_path)
+            return 'Amount: {}, Via: {}, From: {}, Category: {}, At: {}'.format(self.amount, self.source, self.vendor, self.category_path, self.time)
         else:
-            return 'Amount: {}, Via: {}, To: {}, Category: {}'.format(self.amount, self.source, self.vendor, self.category_path)
+            return 'Amount: {}, Via: {}, To: {}, Category: {}, At: {}'.format(self.amount, self.source, self.vendor, self.category_path, self.time)
 
 
 def check_if_price(string):
@@ -518,5 +519,5 @@ def get_transactions(start, end):
 
 
 # Resolve any unknown vendor category maps
-resolve_categories_from_file()
-get_unknown_categories()
+# resolve_categories_from_file()
+# get_unknown_categories()

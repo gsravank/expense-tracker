@@ -75,6 +75,20 @@ def get_total_expense(start_date, end_date):
     return total_expenditure
 
 
+def total_amount_in_transactions(transactions):
+    total_amount = 0.0
+
+    for tran in transactions:
+        total_amount += tran.amount
+
+    return total_amount
+
+
+def get_total_expense_from_transactions(transactions):
+    expense_transactions = get_expense_transactions_from_transactions(transactions)
+    return total_amount_in_transactions(expense_transactions)
+
+
 def get_total_income(start_date, end_date):
     income_transactions = get_income_transactions(start_date, end_date)
 
@@ -84,6 +98,11 @@ def get_total_income(start_date, end_date):
         total_expenditure += transaction.amount
 
     return total_expenditure
+
+
+def get_total_income_from_transactions(transactions):
+    income_transactions = get_income_transactions_from_transactions(transactions)
+    return total_amount_in_transactions(income_transactions)
 
 
 def get_expense_transactions(start_date, end_date):
@@ -97,10 +116,30 @@ def get_expense_transactions(start_date, end_date):
     return expense_transactions
 
 
+def get_expense_transactions_from_transactions(transactions):
+    expense_transactions = list()
+
+    for transaction in transactions:
+        if transaction.flow == 'out':
+            expense_transactions.append(transaction)
+
+    return expense_transactions
+
+
 def get_income_transactions(start_date, end_date):
     transactions = get_transactions(start_date, end_date)
 
     income_transactions = list()
+    for transaction in transactions:
+        if transaction.flow == 'in':
+            income_transactions.append(transaction)
+
+    return income_transactions
+
+
+def get_income_transactions_from_transactions(transactions):
+    income_transactions = list()
+
     for transaction in transactions:
         if transaction.flow == 'in':
             income_transactions.append(transaction)
