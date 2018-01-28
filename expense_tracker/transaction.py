@@ -253,7 +253,7 @@ class Transaction:
 
                 readable_name = rel_df['readable_name']
             else:
-                readable_name = 'unknown'
+                readable_name = 'Unknown'
 
             self.vendor = readable_name
 
