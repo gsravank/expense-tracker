@@ -7,7 +7,6 @@ cymem==1.31.2
 cytoolz==0.8.2
 decorator==4.2.1
 dill==0.2.7.1
-en-core-web-sm==2.0.0
 enum34==1.1.6
 forex-python==0.3.2
 ftfy==4.4.3
@@ -37,7 +36,6 @@ scipy==1.0.0
 seaborn==0.8.1
 simplejson==3.13.2
 six==1.11.0
-spacy==2.0.5
 subprocess32==3.2.7
 termcolor==1.1.0
 thinc==6.10.2
@@ -49,3 +47,4 @@ urllib3==1.22
 wcwidth==0.1.7
 webencodings==0.5.1
 wrapt==1.10.11
+yagmail==0.10.209

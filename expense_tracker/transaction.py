@@ -2,12 +2,8 @@ from imessage import get_messages, get_all_messages
 from constants import incoming_action_words, outgoing_action_words, transaction_sources, usd_to_inr, CITI_ACCOUNT, CITI_CREDIT, CITI_DEBIT, PAYTM
 from category_tree import category_tree_dictionary, get_node_from_node_name, get_path_string_from_root_to_node
 
-import spacy
 import pandas as pd
 import datetime
-
-
-nlp = spacy.load('en')
 
 
 class Transaction:

@@ -10,23 +10,28 @@ import os
 import numpy as np
 import json
 import pandas as pd
+import sys
 
 
 week_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 
 def get_previous_date_with_diff(end_date, period):
-    if period == '1w':
-        time_delta = timedelta(weeks=1)
-    elif period == '1m':
-        time_delta = relativedelta(months=1)
-    else:
-        return None
-
     end_date_datetime = datetime.strptime(end_date, '%Y-%m-%d')
 
-    first_date_datetime = end_date_datetime - time_delta
-    first_date_string = first_date_datetime.strftime('%Y-%m-%d')
+    if period == '1w':
+        time_delta = timedelta(days=6)
+
+        first_date_datetime = end_date_datetime - time_delta
+        first_date_string = first_date_datetime.strftime('%Y-%m-%d')
+    elif period == '1m':
+        time_delta = relativedelta(months=1)
+
+        first_date_datetime = end_date_datetime - time_delta
+        first_date_datetime = first_date_datetime + timedelta(days=1)
+        first_date_string = first_date_datetime.strftime('%Y-%m-%d')
+    else:
+        return None
 
     return first_date_string
 
@@ -835,3 +840,21 @@ class Report():
         sent = send_email(login_user, login_password, receiver_email_address, subject, contents)
 
         return sent
+
+
+if __name__ == '__main__':
+    arguments = sys.argv
+
+    if len(arguments) != 3:
+        print 'End date and type not provided'
+        print arguments
+    else:
+        end_date = arguments[1]
+        end_date_datetime = get_datetime_obj(end_date)
+
+        if arguments[2] == 'week':
+            start_date = get_previous_date_with_diff(end_date, '1w')
+        else:
+            start_date = get_previous_date_with_diff(end_date, '1m')
+
+        Report(start_date, end_date)
