@@ -4,6 +4,7 @@ from category_tree import category_tree_dictionary, get_node_from_node_name, get
 
 import pandas as pd
 import datetime
+import os
 
 
 class Transaction:
@@ -219,7 +220,10 @@ class Transaction:
 
     def get_category_path(self):
         if not any([elem is None for elem in [self.amount, self.source, self.vendor_name, self.flow]]):
-            vendor_category_df = pd.read_csv('data/super_categories.csv')
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            super_categories_file = os.path.join(dir_path, 'data/super_categories.csv')
+
+            vendor_category_df = pd.read_csv(super_categories_file)
             rel_df = vendor_category_df[(vendor_category_df['source'] == self.source) & (vendor_category_df['flow'] == self.flow) & (vendor_category_df['vendor_name'] == self.vendor_name)]
 
             if len(rel_df):
@@ -241,7 +245,10 @@ class Transaction:
 
     def get_readable_name(self):
         if not any([elem is None for elem in [self.amount, self.source, self.vendor_name, self.flow]]):
-            vendor_category_df = pd.read_csv('data/super_categories.csv')
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            super_categories_file = os.path.join(dir_path, 'data/super_categories.csv')
+
+            vendor_category_df = pd.read_csv(super_categories_file)
             rel_df = vendor_category_df[(vendor_category_df['source'] == self.source) & (vendor_category_df['flow'] == self.flow) & (vendor_category_df['vendor_name'] == self.vendor_name)]
 
             if len(rel_df):
@@ -400,8 +407,10 @@ def message_is_a_transaction(message):
 
 
 def resolve_categories_from_file():
-    unknown_categories_file = 'data/unknown_categories.csv'
-    super_categories_file = 'data/super_categories.csv'
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+
+    unknown_categories_file = os.path.join(dir_path, 'data/unknown_categories.csv')
+    super_categories_file = os.path.join(dir_path, 'data/super_categories.csv')
 
     unknown_categories = pd.read_csv(unknown_categories_file)
     try:
@@ -463,13 +472,19 @@ def get_unknown_categories():
 
         unknown_categories_df = pd.DataFrame({'flow': flows, 'source': sources, 'vendor_name': vendor_names, 'tree_name': tree_names, 'leaf_name': leaf_names, 'readable_name': vendors})
         unknown_categories_df = unknown_categories_df[['flow', 'source', 'vendor_name', 'tree_name', 'leaf_name', 'readable_name']]
-        unknown_categories_df.to_csv('data/unknown_categories.csv')
+
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        unknown_categories_file = os.path.join(dir_path, 'data/unknown_categories.csv')
+        unknown_categories_df.to_csv(unknown_categories_file)
 
         print 'Written unknown vendor to category maps to unknown_categories.csv'
     else:
         empty_df = pd.DataFrame({'flow': [], 'source': [], 'vendor_name': [], 'tree_name': [], 'leaf_name': [], 'readable_name': []})
         empty_df = empty_df[['flow', 'source', 'vendor_name', 'tree_name', 'leaf_name', 'readable_name']]
-        empty_df.to_csv('data/unknown_categories.csv')
+
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        unknown_categories_file = os.path.join(dir_path, 'data/unknown_categories.csv')
+        empty_df.to_csv(unknown_categories_file)
         print 'No unknown categories among the transactions'
 
 
@@ -515,5 +530,5 @@ def get_transactions(start, end):
 
 
 # Resolve any unknown vendor category maps
-# resolve_categories_from_file()
-# get_unknown_categories()
+resolve_categories_from_file()
+get_unknown_categories()

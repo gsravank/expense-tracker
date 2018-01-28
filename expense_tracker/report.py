@@ -568,7 +568,12 @@ class Report():
 
         # Mail the reports
         print 'Mailing the report'
-        self.send_report()
+        sent = self.send_report()
+
+        if sent:
+            print 'Done'
+        else:
+            print 'Not sent\n'
 
     def get_dataframe_from_transactions(self):
         amounts = list()
@@ -844,6 +849,7 @@ class Report():
 
 if __name__ == '__main__':
     arguments = sys.argv
+    print arguments
 
     if len(arguments) != 3:
         print 'End date and type not provided'
@@ -857,4 +863,5 @@ if __name__ == '__main__':
         else:
             start_date = get_previous_date_with_diff(end_date, '1m')
 
+        print 'Start Date: {}, End Date: {}'.format(start_date, end_date)
         Report(start_date, end_date)

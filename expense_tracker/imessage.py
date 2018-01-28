@@ -1,6 +1,7 @@
 import sqlite3
 import datetime
 from dateutil.relativedelta import relativedelta
+import os
 from os.path import expanduser
 
 
@@ -43,7 +44,9 @@ def _connection():
     #  ~/Library/Messages/chat.db
 
     # db_path = expanduser("~") + '/Library/Messages/chat.db'
-    db_path = 'data/chat.db'
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    db_path = os.path.join(dir_path, 'data/chat.db')
 
     return sqlite3.connect(db_path)
 
